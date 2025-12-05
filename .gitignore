@@ -1,0 +1,14 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyd
+
+# Archivos de Datos Grandes/Modelos
+*.model
+*.npy
+*.tsv # Aunque podrías querer subir los tsv, si son grandes o se regeneran, es mejor ignorarlos.
+# Si tus archivos embeddings.tsv y labels.tsv son pequeños y quieres subirlos, borra la línea de arriba.
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
