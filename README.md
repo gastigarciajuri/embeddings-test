@@ -1,46 +1,70 @@
-🇪🇸 Word2Vec en Español - Modelado de Embeddings Vectoriales
-Este repositorio contiene un script de Python diseñado para entrenar un modelo Word2Vec a partir de un corpus masivo en español. El objetivo es generar representaciones vectoriales densas (embeddings) de palabras que capturan sus relaciones semánticas y sintácticas.
-El script realiza la descarga, el pre-procesamiento del corpus y el entrenamiento del modelo, finalizando con la exportación de los vectores para su visualización y un modo interactivo de pruebas.
-✨ Funcionalidades Clave
-El script principal (main.py o nombre_del_script.py) integra las siguientes características fundamentales del pipeline de PLN:
-Configuración de PLN (NLTK): Descarga automática de recursos necesarios (stopwords, punkt) y definición de stop words en español.
-Carga de Corpus Masivo: Utiliza el dataset josecannete/large_spanish_corpus (un subconjunto de 1 millón de registros) para garantizar un entrenamiento rápido y de alta calidad.
-Pre-procesamiento Intensivo:
-Conversión de texto a minúsculas.
-Eliminación de URLs, menciones (@) y hashtags (#).
-Limpieza de puntuación, números y palabras cortas (menores a 2 caracteres).
-Tokenización y filtrado de stop words.
-Entrenamiento Word2Vec: Entrena el modelo con el algoritmo Skip-gram (sg=1), utilizando una dimensionalidad de 300 vectores y una ventana de contexto de 10.
-Persistencia del Modelo: Guarda el modelo entrenado como word2vec_large_spanish_corpus.model para permitir la carga sin necesidad de re-entrenamiento.
-Exportación para Visualización: Genera automáticamente los archivos embeddings.tsv y labels.tsv para su uso en el TensorFlow Projector.
-Modo Interactivo: Permite al usuario consultar la similitud (Producto Coseno) entre palabras y encontrar los términos más similares una vez finalizado el entrenamiento.
-🛠️ Requisitos Previos
-Necesitas tener Python 3.8+ instalado en tu sistema.
-Instalación de Librerías
-Recomendamos el uso de un entorno virtual. Instala todas las dependencias requeridas con pip:
-pip install datasets pandas nltk gensim
+## 🧩 Código Fuente
+
+### Ver Código: `word2vec_trainer.py`
+
+[Enlace al Código Fuente](https://github.com/gastigarciajuri/embeddings-test/blob/main/test_2.py)
+
+---
+
+## 🧠 Análisis y Arquitectura
+
+<details>
+<summary>Explicación Detallada de la Lógica y NLP</summary>
+
+Este **pipeline** sigue las etapas estándar de un proyecto de *Word Embeddings*, desde la ingesta de datos masivos hasta la aplicación de técnicas de álgebra lineal para demostrar la comprensión semántica.
+
+### 1\. **Fase de Pre-procesamiento y Limpieza (`load_and_preprocess_corpus`)**
+
+Esta es la etapa **crítica** para preparar el lenguaje natural para el modelo. Se utiliza la eficiencia de la librería `datasets` con la función `.map(batched=True)` para procesar el corpus de 1 millón de registros de manera **rápida y paralela**.
+
+El *pipeline* de limpieza dentro de `process_batch` es robusto e incluye:
+
+* Conversión a minúsculas (`.lower()`).
+* Eliminación de entidades de *web* o redes sociales (URLs, menciones (`@`), hashtags (`#`)).
+* Limpieza de puntuación y números (vía `gensim`).
+* **Tokenización y Filtrado de *Stopwords***: Se utiliza `nltk.word_tokenize` para separar las palabras y, posteriormente, se eliminan las *stopwords* en español para asegurar que el modelo se enfoque solo en el significado y no en palabras de función (como "el", "la", "de").
+
+---
+
+### 2\. **Fase de Entrenamiento (`train_and_load_model`)**
+
+Aquí se entrena el modelo `Word2Vec` utilizando el algoritmo **Skip-gram** (`sg=1`), que ha demostrado ser más eficaz para capturar relaciones semánticas complejas que el modelo CBOW.
+
+* **Dimensionalidad (300):** Cada palabra será representada por un vector de 300 números, lo que permite capturar múltiples rasgos de significado.
+* **Ventana (10):** El modelo considera 10 palabras a la izquierda y 10 a la derecha de la palabra objetivo para definir su contexto semántico.
+* **Trabajadores (12):** Utiliza 12 núcleos de CPU para acelerar el entrenamiento del corpus masivo.
+
+El modelo se entrena durante 10 épocas y se guarda en disco para garantizar la persistencia.
 
 
-🚀 Inicialización y Ejecución
-Para iniciar el proceso de entrenamiento y acceder al modo interactivo, ejecuta el script principal (asegúrate de reemplazar main.py por el nombre de tu archivo si es diferente):
-python main.py
+---
 
+### 3\. **Verificación Semántica y Álgebra Lineal (`run_tests` & `interactive_mode`)**
 
-Flujo de Ejecución
-El script seguirá la siguiente secuencia, con mensajes de progreso en consola:
-Configuración inicial de NLTK y descarga de recursos.
-Carga y pre-procesamiento por lotes del corpus.
-Entrenamiento del modelo Word2Vec.
-Guardado del modelo en disco y generación de los archivos .tsv.
-Ejecución de pruebas de verificación semántica (similitud entre "rey" y "reina", similares a "españa").
-Ingreso al Modo Interactivo (usa sim, comp, o salir).
-📊 Visualización de Embeddings
-Una vez generados, los archivos .tsv son esenciales para la inspección 3D del espacio vectorial:
-embeddings.tsv: La matriz de vectores generada por Word2Vec.
-labels.tsv: Las etiquetas (palabras) asociadas a cada vector.
-Pasos para la Visualización en 3D:
-Abre el TensorFlow Projector en tu navegador.
-Haz clic en el botón "Load" (Cargar) en el panel izquierdo.
-Sube embeddings.tsv como el archivo de vectores.
-Sube labels.tsv como el archivo de etiquetas.
-Utiliza los métodos de reducción de dimensionalidad (como PCA o t-SNE) en el panel derecho para explorar la agrupación semántica de las palabras.
+La calidad de los *embeddings* se valida aplicando directamente el álgebra lineal sobre los vectores:
+
+* **Similitud Coseno (`wv.similarity`):** Esta métrica mide el ángulo entre dos vectores. Una puntuación cercana a $1.0$ indica que los vectores apuntan en direcciones muy similares, lo que significa que las palabras tienen un significado o contexto muy relacionado (ej. "rey" y "reina").
+* **Búsqueda Vectorial (`wv.most_similar`):** Encuentra las palabras más cercanas en el espacio vectorial a una palabra dada, demostrando la capacidad del modelo para "buscar" sinónimos o palabras relacionadas por significado.
+
+---
+
+### 4\. **Exportación para Visualización (`export_to_projector`)**
+
+Esta función es clave para fines de documentación y exploración. Exporta la matriz de vectores (`embeddings.tsv`) y el vocabulario (`labels.tsv`) en el formato compatible con **TensorFlow Embedding Projector**. Esto permite reducir las 300 dimensiones a 3 (mediante PCA o t-SNE) y ver la nube de palabras.
+</details>
+
+---
+
+## 🛑 Manejo de Errores y Excepciones
+
+<details>
+<summary>Robustez y Fallas Comunes</summary>
+
+El script incorpora varias salvaguardas para asegurar una ejecución fluida en diferentes entornos:
+
+* **Fallo en Carga de Corpus:** La función `load_and_preprocess_corpus` incluye un bloque `try-except` para intentar forzar la redescarga del *dataset* si la carga inicial falla, mitigando problemas comunes de caché de `datasets`.
+* **Dependencia Opcional de Pandas:** La librería `pandas` se verifica dinámicamente en `main()`. Si no está instalada, el script lanza una **advertencia** y omite la exportación a TSV, permitiendo que el entrenamiento y el modo interactivo sigan funcionando.
+* **Manejo de Vocabulario:** Las funciones `run_tests` y `interactive_mode` verifican si la palabra consultada (`if input_word not in wv:`) existe en el vocabulario del modelo, evitando errores de clave al intentar acceder a un vector inexistente.
+* **`try-except` Interactivos:** El `interactive_mode` está envuelto en un `try-except` general que captura errores inesperados o interrupciones de teclado (`KeyboardInterrupt`), cerrando el modo interactivo de forma limpia.
+
+</details>
